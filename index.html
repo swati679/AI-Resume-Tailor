@@ -127,12 +127,19 @@
   .resume-page{
     width:816px;
     max-width:100%;
-    min-height:1056px;
+    height:1056px;
+    box-sizing:border-box;
     background:var(--paper);
     box-shadow:0 4px 24px rgba(75,46,131,.15);
+    overflow:hidden;
+    position:relative;
+  }
+  #resumeInner{
     padding:38px 46px;
+    box-sizing:border-box;
     font-size:12.5px;
     line-height:1.45;
+    transform-origin:top left;
   }
   .r-name{
     font-size:26px;
@@ -186,8 +193,9 @@
     .panel, .toolbar{display:none !important;}
     .app{display:block !important;}
     .preview-wrap{padding:0; align-items:flex-start;}
-    .resume-page{box-shadow:none; width:100%; min-height:0;}
+    .resume-page{box-shadow:none;}
     body{background:#fff;}
+    @page{ size: letter; margin: 0; }
   }
 </style>
 </head>
@@ -288,6 +296,21 @@ function escapeHtml(str){
   }[c]));
 }
 
+function fitResumeToPage(){
+  const inner = document.getElementById('resumeInner');
+  if(!inner) return;
+  // reset to natural size first so we measure true content height
+  inner.style.transform = 'none';
+  inner.style.width = '100%';
+  const targetHeight = 1056; // matches .resume-page fixed height (= 11in @ 96dpi)
+  const naturalHeight = inner.scrollHeight;
+  if(!naturalHeight) return;
+  let scale = targetHeight / naturalHeight;
+  scale = Math.max(0.55, Math.min(1.25, scale)); // keep font sizes sane at both extremes
+  inner.style.width = (100 / scale) + '%';
+  inner.style.transform = `scale(${scale})`;
+}
+
 function renderResume(data){
   const contact = [data.location, data.phone, data.email, data.linkedin].filter(Boolean).join(' | ');
 
@@ -360,7 +383,8 @@ async function tailorResume(){
     const parsed = await response.json();
     if(!response.ok){ throw new Error(parsed.error || 'Server error'); }
 
-    $('resumePage').innerHTML = renderResume(parsed);
+    $('resumePage').innerHTML = '<div id="resumeInner">' + renderResume(parsed) + '</div>';
+    requestAnimationFrame(() => requestAnimationFrame(fitResumeToPage));
     $('printBtn').style.display = 'inline-block';
     $('toolbarHint').textContent = company ? `Tailored for ${company}` : 'Tailored resume';
     setStatus('Done. Review it, then print or tweak the inputs and re-run.', 'ok');
