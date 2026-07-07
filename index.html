@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Resume Tailor</title>
+<style>
+  :root{
+    --purple:#4B2E83;
+    --purple-light:#6A3FB5;
+    --ink:#2b2b2b;
+    --paper:#ffffff;
+    --bg:#f5f3f9;
+    --line:#e3ddef;
+    --muted:#6b6b76;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Segoe UI', Arial, Helvetica, sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+  }
+  .app{
+    display:grid;
+    grid-template-columns: 380px 1fr;
+    gap:0;
+    min-height:100vh;
+  }
+  .panel{
+    padding:22px 20px;
+    background:var(--paper);
+    border-right:1px solid var(--line);
+    overflow-y:auto;
+  }
+  .panel h1{
+    font-size:18px;
+    color:var(--purple);
+    margin:0 0 4px 0;
+    letter-spacing:.2px;
+  }
+  .panel p.sub{
+    margin:0 0 18px 0;
+    font-size:12.5px;
+    color:var(--muted);
+  }
+  label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    color:var(--purple);
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    margin:16px 0 6px 0;
+  }
+  textarea, input[type=text]{
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:10px;
+    font-size:13px;
+    font-family:inherit;
+    resize:vertical;
+    background:#fbfaff;
+  }
+  textarea:focus, input:focus{
+    outline:none;
+    border-color:var(--purple-light);
+    background:#fff;
+  }
+  #baseResume{height:160px;}
+  #jobDescription{height:180px;}
+  .row{display:flex; gap:8px; align-items:center;}
+  button{
+    cursor:pointer;
+    border:none;
+    border-radius:6px;
+    font-size:13px;
+    font-weight:600;
+    padding:10px 14px;
+    transition:filter .15s ease;
+  }
+  button:hover{filter:brightness(1.08);}
+  button:disabled{opacity:.55; cursor:not-allowed;}
+  .btn-primary{
+    background:var(--purple);
+    color:#fff;
+    width:100%;
+    margin-top:18px;
+    padding:12px;
+    font-size:14px;
+  }
+  .btn-secondary{
+    background:#eee7fb;
+    color:var(--purple);
+    width:100%;
+    margin-top:8px;
+  }
+  .status{
+    margin-top:10px;
+    font-size:12.5px;
+    color:var(--muted);
+    min-height:16px;
+  }
+  .status.error{color:#b3261e;}
+  .status.ok{color:#1e7a3d;}
+  /* Preview side */
+  .preview-wrap{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:28px;
+    overflow-y:auto;
+  }
+  .toolbar{
+    width:816px;
+    max-width:100%;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:14px;
+  }
+  .toolbar .hint{font-size:12.5px; color:var(--muted);}
+  .print-btn{
+    background:var(--purple);
+    color:#fff;
+  }
+  .resume-page{
+    width:816px;
+    max-width:100%;
+    min-height:1056px;
+    background:var(--paper);
+    box-shadow:0 4px 24px rgba(75,46,131,.15);
+    padding:38px 46px;
+    font-size:12.5px;
+    line-height:1.45;
+  }
+  .r-name{
+    font-size:26px;
+    font-weight:700;
+    color:var(--purple);
+    text-align:center;
+    margin-bottom:2px;
+  }
+  .r-contact{
+    text-align:center;
+    font-size:11.5px;
+    color:var(--ink);
+    margin-bottom:16px;
+  }
+  .r-section-title{
+    font-size:13px;
+    font-weight:700;
+    color:var(--purple);
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    border-bottom:1.5px solid var(--purple);
+    padding-bottom:3px;
+    margin:14px 0 8px 0;
+  }
+  .r-summary{margin-bottom:4px;}
+  .r-skills-line{margin-bottom:4px;}
+  .r-skills-line b{color:var(--purple);}
+  .r-item{margin-bottom:10px;}
+  .r-item-head{
+    display:flex;
+    justify-content:space-between;
+    font-weight:700;
+    font-size:12.5px;
+  }
+  .r-item-sub{
+    font-style:italic;
+    color:var(--muted);
+    font-size:11.5px;
+    margin-bottom:3px;
+  }
+  .r-item ul{margin:2px 0 0 18px; padding:0;}
+  .r-item li{margin-bottom:2px;}
+  .placeholder{
+    color:var(--muted);
+    text-align:center;
+    margin-top:120px;
+    font-size:13px;
+    line-height:1.6;
+  }
+  @media print{
+    .panel, .toolbar{display:none !important;}
+    .preview-wrap{padding:0; align-items:flex-start;}
+    .resume-page{box-shadow:none; width:100%; min-height:0;}
+    body{background:#fff;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="panel">
+    <h1>Resume Tailor</h1>
+    <p class="sub">Paste your base resume once. Then for every job, paste the JD and tailor in one click.</p>
+
+    <label>Base resume <span style="font-weight:400; text-transform:none; color:var(--muted);">(saved automatically)</span></label>
+    <textarea id="baseResume" placeholder="Paste your full resume text here..."></textarea>
+    <button class="btn-secondary" id="saveResumeBtn">Save base resume</button>
+
+    <label>Company name (optional)</label>
+    <input type="text" id="companyName" placeholder="e.g. Capgemini">
+
+    <label>Job description</label>
+    <textarea id="jobDescription" placeholder="Paste the job description here..."></textarea>
+
+    <label>Additional instructions <span style="font-weight:400; text-transform:none; color:var(--muted);">(optional)</span></label>
+    <textarea id="extraInstructions" placeholder="e.g. Make the summary punchier, emphasize leadership, drop the Therapy LLM project, keep it strictly one page..." style="height:80px;"></textarea>
+
+    <button class="btn-primary" id="tailorBtn">Tailor my resume</button>
+    <div class="status" id="status"></div>
+  </div>
+
+  <div class="preview-wrap">
+    <div class="toolbar">
+      <span class="hint" id="toolbarHint">Tailored resume preview will appear here</span>
+      <button class="print-btn" id="printBtn" style="display:none;">Print / Save as PDF</button>
+    </div>
+    <div class="resume-page" id="resumePage">
+      <div class="placeholder">Paste your resume + a job description on the left,<br>then click "Tailor my resume".</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const DEFAULT_RESUME = `YOUR NAME
+City, State/Country
++00 0000000000 | your.email@example.com
+LinkedIn: linkedin.com/in/your-profile
+
+SUMMARY
+A short 2-4 sentence summary of who you are professionally, your specialization, and what you bring to the table. Rewrite this to match your actual background.
+
+SKILLS
+Category A: Skill 1, Skill 2, Skill 3.
+Category B: Skill 1, Skill 2, Skill 3.
+
+PROJECTS
+Project Name
+Tech Stack: List the technologies used
+- What you built and the problem it solved.
+- A key technical decision or challenge you handled.
+- The outcome or impact, quantified if possible.
+
+WORK EXPERIENCE
+Job Title - Company Name
+Month Year - Month Year
+- What you did and the impact it had.
+- Another accomplishment or responsibility.
+
+EDUCATION
+Degree Name
+School Name | GPA/Percentage | Month Year - Month Year
+
+ACHIEVEMENTS & CERTIFICATIONS
+An achievement or certification.
+Another achievement or certification.`;
+
+const $ = (id) => document.getElementById(id);
+const statusEl = $('status');
+
+function setStatus(msg, type){
+  statusEl.textContent = msg || '';
+  statusEl.className = 'status' + (type ? ' ' + type : '');
+}
+
+async function loadBaseResume(){
+  const saved = localStorage.getItem('base_resume');
+  $('baseResume').value = saved ? saved : DEFAULT_RESUME;
+}
+
+async function saveBaseResume(){
+  try{
+    localStorage.setItem('base_resume', $('baseResume').value);
+    setStatus('Base resume saved.', 'ok');
+    setTimeout(()=>setStatus(''), 2000);
+  }catch(e){
+    setStatus('Could not save resume: ' + e.message, 'error');
+  }
+}
+
+function escapeHtml(str){
+  return (str || '').replace(/[&<>"']/g, (c) => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+function renderResume(data){
+  const contact = [data.location, data.phone, data.email, data.linkedin].filter(Boolean).join(' | ');
+
+  const skillsHtml = (data.skills || []).map(s =>
+    `<div class="r-skills-line"><b>${escapeHtml(s.category)}:</b> ${escapeHtml(s.items)}</div>`
+  ).join('');
+
+  function renderEntries(entries){
+    return (entries || []).map(e => `
+      <div class="r-item">
+        <div class="r-item-head"><span>${escapeHtml(e.title)}</span><span>${escapeHtml(e.dates || '')}</span></div>
+        ${e.subtitle ? `<div class="r-item-sub">${escapeHtml(e.subtitle)}</div>` : ''}
+        <ul>${(e.bullets || []).map(b => `<li>${escapeHtml(b)}</li>`).join('')}</ul>
+      </div>
+    `).join('');
+  }
+
+  const eduHtml = (data.education || []).map(e => `
+    <div class="r-item">
+      <div class="r-item-head"><span>${escapeHtml(e.title)}</span><span>${escapeHtml(e.dates || '')}</span></div>
+      ${e.subtitle ? `<div class="r-item-sub">${escapeHtml(e.subtitle)}</div>` : ''}
+    </div>
+  `).join('');
+
+  const achievements = (data.achievements || []).map(a => `<li>${escapeHtml(a)}</li>`).join('');
+
+  return `
+    <div class="r-name">${escapeHtml(data.name || '')}</div>
+    <div class="r-contact">${escapeHtml(contact)}</div>
+
+    <div class="r-section-title">Summary</div>
+    <div class="r-summary">${escapeHtml(data.summary || '')}</div>
+
+    <div class="r-section-title">Skills</div>
+    ${skillsHtml}
+
+    <div class="r-section-title">Projects</div>
+    ${renderEntries(data.projects)}
+
+    <div class="r-section-title">Work Experience</div>
+    ${renderEntries(data.workExperience)}
+
+    <div class="r-section-title">Education</div>
+    ${eduHtml}
+
+    <div class="r-section-title">Achievements & Certifications</div>
+    <ul>${achievements}</ul>
+  `;
+}
+
+async function tailorResume(){
+  const baseResume = $('baseResume').value.trim();
+  const jd = $('jobDescription').value.trim();
+  const company = $('companyName').value.trim();
+  const extra = $('extraInstructions').value.trim();
+
+  if(!baseResume){ setStatus('Please add your base resume first.', 'error'); return; }
+  if(!jd){ setStatus('Please paste a job description.', 'error'); return; }
+
+  $('tailorBtn').disabled = true;
+  setStatus(company ? `Researching ${company} and tailoring your resume...` : 'Tailoring your resume...', '');
+
+  try{
+    const response = await fetch('/api/tailor', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ baseResume, jd, company, extra })
+    });
+
+    const parsed = await response.json();
+    if(!response.ok){ throw new Error(parsed.error || 'Server error'); }
+
+    $('resumePage').innerHTML = renderResume(parsed);
+    $('printBtn').style.display = 'inline-block';
+    $('toolbarHint').textContent = company ? `Tailored for ${company}` : 'Tailored resume';
+    setStatus('Done. Review it, then print or tweak the inputs and re-run.', 'ok');
+  }catch(e){
+    setStatus('Something went wrong: ' + e.message, 'error');
+  }finally{
+    $('tailorBtn').disabled = false;
+  }
+}
+
+$('saveResumeBtn').addEventListener('click', saveBaseResume);
+$('tailorBtn').addEventListener('click', tailorResume);
+$('printBtn').addEventListener('click', () => window.print());
+
+loadBaseResume();
+</script>
+</body>
+</html>
